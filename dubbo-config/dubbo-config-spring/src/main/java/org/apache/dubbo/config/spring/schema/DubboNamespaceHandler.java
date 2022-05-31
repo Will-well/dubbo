@@ -53,6 +53,7 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport implements Co
 
     @Override
     public void init() {
+        // spring在解析Dubbo.xml标签时，调用模板init方法初始化用于解析Dubbo自定义的XML标签注解的解析器（DubboBeanDefinitionParser）
         registerBeanDefinitionParser("application", new DubboBeanDefinitionParser(ApplicationConfig.class));
         registerBeanDefinitionParser("module", new DubboBeanDefinitionParser(ModuleConfig.class));
         registerBeanDefinitionParser("registry", new DubboBeanDefinitionParser(RegistryConfig.class));
@@ -85,6 +86,10 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport implements Co
         // initialize dubbo beans
         DubboSpringInitializer.initialize(parserContext.getRegistry());
 
+        /**
+         * 重点调用Spring的org.springframework.beans.factory.xml.NamespaceHandlerSupport.parse方法；
+         * 就是对应init内部方法的DubboBeanDefinitionParser{@link DubboBeanDefinitionParser#parse(Element, ParserContext)}#parse方法
+         */
         BeanDefinition beanDefinition = super.parse(element, parserContext);
         setSource(beanDefinition);
         return beanDefinition;
