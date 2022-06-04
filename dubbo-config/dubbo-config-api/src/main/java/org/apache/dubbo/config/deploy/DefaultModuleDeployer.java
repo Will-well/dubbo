@@ -303,8 +303,9 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
     }
 
     private void loadConfigs() {
-        // load module configs
+        // load module configs(加载配置文件)
         moduleModel.getConfigManager().loadConfigs();
+        // 刷新配置（TODO：后续解读）
         moduleModel.getConfigManager().refreshAll();
     }
 

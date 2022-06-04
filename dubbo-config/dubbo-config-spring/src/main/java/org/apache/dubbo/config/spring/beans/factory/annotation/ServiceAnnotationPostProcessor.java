@@ -148,6 +148,7 @@ public class ServiceAnnotationPostProcessor implements BeanDefinitionRegistryPos
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         this.registry = registry;
+        //扫描Dubbo Service的注解
         scanServiceBeans(resolvedPackagesToScan, registry);
     }
 
@@ -196,6 +197,7 @@ public class ServiceAnnotationPostProcessor implements BeanDefinitionRegistryPos
 
         BeanNameGenerator beanNameGenerator = resolveBeanNameGenerator(registry);
         scanner.setBeanNameGenerator(beanNameGenerator);
+        // 指定扫描类型的注解 serviceAnnotationTypes 类型
         for (Class<? extends Annotation> annotationType : serviceAnnotationTypes) {
             scanner.addIncludeFilter(new AnnotationTypeFilter(annotationType));
         }
@@ -214,6 +216,7 @@ public class ServiceAnnotationPostProcessor implements BeanDefinitionRegistryPos
             }
 
             // Registers @Service Bean first
+            // 扫描的核心逻辑
             scanner.scan(packageToScan);
 
             // Finds all BeanDefinitionHolders of @Service whether @ComponentScan scans or not.
@@ -230,7 +233,9 @@ public class ServiceAnnotationPostProcessor implements BeanDefinitionRegistryPos
                 }
 
                 for (BeanDefinitionHolder beanDefinitionHolder : beanDefinitionHolders) {
+                    // 注册 Bean定义到 registry
                     processScannedBeanDefinition(beanDefinitionHolder, registry, scanner);
+                    // servicePackagesHolder 保存扫描的 BeanName
                     servicePackagesHolder.addScannedClass(beanDefinitionHolder.getBeanDefinition().getBeanClassName());
                 }
             } else {
@@ -239,7 +244,7 @@ public class ServiceAnnotationPostProcessor implements BeanDefinitionRegistryPos
                             + packageToScan + "], ignore re-scanned classes: " + scanExcludeFilter.getExcludedCount());
                 }
             }
-
+            // servicePackagesHolder 保存扫描的包
             servicePackagesHolder.addScannedPackage(packageToScan);
         }
     }

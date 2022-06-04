@@ -97,8 +97,10 @@ public class DubboDeployApplicationListener implements ApplicationListener<Appli
     public void onApplicationEvent(ApplicationContextEvent event) {
         if (nullSafeEquals(applicationContext, event.getSource())) {
             if (event instanceof ContextRefreshedEvent) {
+                //Spring 容器启动时触发该事件回调，Dubbo3启动时的入口
                 onContextRefreshedEvent((ContextRefreshedEvent) event);
             } else if (event instanceof ContextClosedEvent) {
+                // 关闭时回调
                 onContextClosedEvent((ContextClosedEvent) event);
             }
         }

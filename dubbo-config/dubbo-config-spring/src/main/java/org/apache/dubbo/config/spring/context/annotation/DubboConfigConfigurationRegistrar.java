@@ -32,12 +32,13 @@ import org.springframework.core.type.AnnotationMetadata;
  * @see Ordered
  * @since 2.5.8
  */
+// ImportBeanDefinitionRegistrar 注解 配合 @Import使用
 public class DubboConfigConfigurationRegistrar implements ImportBeanDefinitionRegistrar {
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
-        // initialize dubbo beans
+        // initialize dubbo beans（Spring初始化，加载Dubbo相关的Bean）
         DubboSpringInitializer.initialize(registry);
 
         // Config beans creating from props have move to ConfigManager
