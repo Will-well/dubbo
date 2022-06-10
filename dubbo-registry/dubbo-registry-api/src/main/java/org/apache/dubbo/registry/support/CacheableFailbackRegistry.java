@@ -68,8 +68,10 @@ public abstract class CacheableFailbackRegistry extends FailbackRegistry {
     private static final Logger logger = LoggerFactory.getLogger(CacheableFailbackRegistry.class);
     private static String[] VARIABLE_KEYS = new String[]{ENCODED_TIMESTAMP_KEY, ENCODED_PID_KEY};
 
+    // URL 地址缓存
     protected Map<String, URLAddress> stringAddress = new ConcurrentHashMap<>();
     protected Map<String, URLParam> stringParam = new ConcurrentHashMap<>();
+    // URL 参数缓存
     private ScheduledExecutorService cacheRemovalScheduler;
     private int cacheRemovalTaskIntervalInMillis;
     private int cacheClearWaitingThresholdInMillis;

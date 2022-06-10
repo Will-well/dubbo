@@ -21,6 +21,9 @@ import org.apache.dubbo.common.utils.StringUtils;
 
 import java.util.Map;
 
+/**
+ * 字符串重用
+ */
 public class URLItemCache {
     // thread safe with limited size, by default 1000
     private static final Map<String, String> PARAM_KEY_CACHE = new LRUCache<>(10000);

@@ -147,20 +147,24 @@ public class ZookeeperRegistry extends CacheableFailbackRegistry {
     public void doSubscribe(final URL url, final NotifyListener listener) {
         try {
             checkDestroyed();
+            // 首次链接注册中心被设置为特殊值 “*” ，订阅所有的数据
             if (ANY_VALUE.equals(url.getServiceInterface())) {
                 String root = toRootPath();
                 boolean check = url.getParameter(CHECK_KEY, false);
                 ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.computeIfAbsent(url, k -> new ConcurrentHashMap<>());
                 ChildListener zkListener = listeners.computeIfAbsent(listener, k -> (parentPath, currentChilds) -> {
+                    // （回调）子节点变化时触发执行遍历子节点
                     for (String child : currentChilds) {
                         child = URL.decode(child);
                         if (!anyServices.contains(child)) {
+                            // 子节点没有被订阅为新节点就订阅
                             anyServices.add(child);
                             subscribe(url.setPath(child).addParameters(INTERFACE_KEY, child,
                                 Constants.CHECK_KEY, String.valueOf(check)), k);
                         }
                     }
                 });
+                // 创建root路径后，添加监听器
                 zkClient.create(root, false);
                 List<String> services = zkClient.addChildListener(root, zkListener);
                 if (CollectionUtils.isNotEmpty(services)) {
@@ -175,6 +179,7 @@ public class ZookeeperRegistry extends CacheableFailbackRegistry {
                 CountDownLatch latch = new CountDownLatch(1);
                 try {
                     List<URL> urls = new ArrayList<>();
+                    // 对于非首次连接，处理该路径下的节点即可
                     for (String path : toCategoriesPath(url)) {
                         ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.computeIfAbsent(url, k -> new ConcurrentHashMap<>());
                         ChildListener zkListener = listeners.computeIfAbsent(listener, k -> new RegistryChildListenerImpl(url, path, k, latch));
@@ -187,6 +192,7 @@ public class ZookeeperRegistry extends CacheableFailbackRegistry {
                             urls.addAll(toUrlsWithEmpty(url, path, children));
                         }
                     }
+                    // 回调NotifyListener,更新本地缓存信息
                     notify(url, listener, urls);
                 } finally {
                     // tells the listener to run only after the sync notification of main thread finishes.
