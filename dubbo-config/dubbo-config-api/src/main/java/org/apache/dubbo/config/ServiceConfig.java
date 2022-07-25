@@ -347,6 +347,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         checkAndUpdateSubConfigs();
     }
 
+    // 服务导出起点（入口）
     protected synchronized void doExport() {
         if (unexported) {
             throw new IllegalStateException("The service " + interfaceClass.getName() + " has already unexported!");
@@ -384,6 +385,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
         List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
 
+        //多协议注册
         for (ProtocolConfig protocolConfig : protocols) {
             String pathKey = URL.buildKey(getContextPath(protocolConfig)
                     .map(p -> p + "/" + path)
@@ -398,6 +400,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     }
 
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
+        // 获取配置参数封装到map中，给构建成URL参数
         Map<String, String> map = buildAttributes(protocolConfig);
 
         // remove null key and null value
@@ -407,6 +410,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
         URL url = buildUrl(protocolConfig, map);
 
+        //继续export
         exportUrl(url, registryURLs);
     }
 
@@ -570,11 +574,13 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
             // export to local if the config is not remote (export to remote only when config is remote)
             if (!SCOPE_REMOTE.equalsIgnoreCase(scope)) {
+                // 本地导出
                 exportLocal(url);
             }
 
             // export to remote if the config is not local (export to local only when config is local)
             if (!SCOPE_LOCAL.equalsIgnoreCase(scope)) {
+                // 远程导出
                 url = exportRemote(url, registryURLs);
                 if (!isGeneric(generic) && !getScopeModel().isInternal()) {
                     MetadataUtils.publishServiceDefinition(url, providerModel.getServiceModel(), getApplicationModel());
@@ -616,6 +622,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     }
                 }
 
+                // 添加参数继续导export
                 doExportUrl(registryURL.putAttribute(EXPORT_KEY, url), true);
             }
 
@@ -638,6 +645,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         if (withMetaData) {
             invoker = new DelegateProviderMetaDataInvoker(invoker, this);
         }
+        // 将URL暴露为 invoker 导出
         Exporter<?> exporter = protocolSPI.export(invoker);
         exporters.add(exporter);
     }

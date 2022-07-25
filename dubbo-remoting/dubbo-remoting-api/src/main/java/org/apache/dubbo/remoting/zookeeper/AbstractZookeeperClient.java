@@ -68,6 +68,7 @@ public abstract class AbstractZookeeperClient<TargetDataListener, TargetChildLis
     }
 
 
+    // 典型的递归模板
     @Override
     public void create(String path, boolean ephemeral) {
         if (!ephemeral) {
@@ -81,8 +82,10 @@ public abstract class AbstractZookeeperClient<TargetDataListener, TargetChildLis
         }
         int i = path.lastIndexOf('/');
         if (i > 0) {
+            // 循环创建路劲
             create(path.substring(0, i), false);
         }
+        // 根据 ephemeral（dynamic参数）决定创建临时、持久节点
         if (ephemeral) {
             createEphemeral(path);
         } else {

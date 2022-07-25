@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.remoting.exchange.support.header;
 
+import com.sun.security.ntlm.Server;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.Transporters;
@@ -41,6 +42,7 @@ public class HeaderExchanger implements Exchanger {
 
     @Override
     public ExchangeServer bind(URL url, ExchangeHandler handler) throws RemotingException {
+        // 创建 netty Server构建 HeaderExchangeServer
         return new HeaderExchangeServer(Transporters.bind(url, new DecodeHandler(new HeaderExchangeHandler(handler))));
     }
 

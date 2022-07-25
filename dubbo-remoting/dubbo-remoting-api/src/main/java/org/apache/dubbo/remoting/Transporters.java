@@ -52,6 +52,7 @@ public class Transporters {
         } else {
             handler = new ChannelHandlerDispatcher(handlers);
         }
+        // 创建Netty Server
         return getTransporter(url).bind(url, handler);
     }
 

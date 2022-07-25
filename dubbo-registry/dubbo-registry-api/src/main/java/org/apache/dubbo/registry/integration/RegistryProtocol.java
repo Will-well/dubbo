@@ -245,6 +245,7 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
         // decide if we need to delay publish (provider itself and registry should both need to register)
         boolean register = providerUrl.getParameter(REGISTER_KEY, true) && registryUrl.getParameter(REGISTER_KEY, true);
         if (register) {
+            // 注册中心注册（在注册中心添加节点和watcher）
             register(registry, registeredProviderUrl);
         }
 
@@ -260,6 +261,7 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
             registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
         }
 
+        // 导出通知（Listener）
         notifyExport(exporter);
         //Ensure that a new exporter instance is returned every time export
         return new DestroyableExporter<>(exporter);
@@ -291,6 +293,7 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
 
         return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
             Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
+            // 协议导出
             return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);
         });
     }

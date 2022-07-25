@@ -311,6 +311,7 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+        // 创建NettyServer监听端口和保存服务实例
         openServer(url);
         optimizeSerialization(url);
 
@@ -324,11 +325,13 @@ public class DubboProtocol extends AbstractProtocol {
         // client can export a service which only for server to invoke
         boolean isServer = url.getParameter(IS_SERVER_KEY, true);
         if (isServer) {
+            // DCL
             ProtocolServer server = serverMap.get(key);
             if (server == null) {
                 synchronized (this) {
                     server = serverMap.get(key);
                     if (server == null) {
+                        // 创建netty server
                         serverMap.put(key, createServer(url));
                     }else {
                         server.reset(url);
@@ -363,6 +366,7 @@ public class DubboProtocol extends AbstractProtocol {
 
         ExchangeServer server;
         try {
+            // 创建NettyServer并且初始化Handle
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
