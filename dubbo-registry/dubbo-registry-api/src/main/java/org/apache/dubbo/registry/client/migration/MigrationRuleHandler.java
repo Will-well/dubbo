@@ -37,6 +37,7 @@ public class MigrationRuleHandler<T> {
         this.consumerURL = url;
     }
 
+    // 三种订阅方式
     public synchronized void doMigrate(MigrationRule rule) {
         if (migrationInvoker instanceof ServiceDiscoveryMigrationInvoker) {
             refreshInvoker(MigrationStep.FORCE_APPLICATION, 1.0f, rule);

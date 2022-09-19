@@ -72,6 +72,11 @@ public class AbortPolicyWithReport extends ThreadPoolExecutor.AbortPolicy {
         this.url = url;
     }
 
+    /**
+     * Dubbo线程池的丢弃策略：重写拒绝策略，添加日志、记录JVM的JStack信息、发送 {@link ThreadPoolExhaustedEvent}事件
+     * @param r the runnable task requested to be executed
+     * @param e the executor attempting to execute this task
+     */
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
         String msg = String.format("Thread pool is EXHAUSTED!" +

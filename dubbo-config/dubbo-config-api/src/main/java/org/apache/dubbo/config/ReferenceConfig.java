@@ -282,6 +282,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
         serviceMetadata.getAttachments().putAll(referenceParameters);
 
+        // 创建refer的代理对象
         ref = createProxy(referenceParameters);
 
         serviceMetadata.setTarget(ref);
@@ -381,6 +382,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
     @SuppressWarnings({"unchecked"})
     private T createProxy(Map<String, String> referenceParameters) {
+        // 是否需要本地暴露
         if (shouldJvmRefer(referenceParameters)) {
             createInvokerForLocal(referenceParameters);
         } else {
@@ -491,6 +493,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     private void createInvokerForRemote() {
         if (urls.size() == 1) {
             URL curUrl = urls.get(0);
+            // 远程协议的服务引用 RegistryProtocol#refer
             invoker = protocolSPI.refer(interfaceClass, curUrl);
             if (!UrlUtils.isRegistry(curUrl)) {
                 List<Invoker<?>> invokers = new ArrayList<>();

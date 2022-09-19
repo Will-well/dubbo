@@ -228,8 +228,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 this.init();
 
                 if (shouldDelay()) {
+                    // 延时导出
                     doDelayExport();
                 } else {
+                    // 同步导出
                     doExport();
                 }
             }
@@ -383,6 +385,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
         repository.registerProvider(providerModel);
 
+        // 注意：这里放入 service-discovery-registry 和 registry 的注册协议（如果配置双协议）
         List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
 
         //多协议注册

@@ -109,7 +109,7 @@ public class DubboDeployApplicationListener implements ApplicationListener<Appli
     private void onContextRefreshedEvent(ContextRefreshedEvent event) {
         ModuleDeployer deployer = moduleModel.getDeployer();
         Assert.notNull(deployer, "Module deployer is null");
-        // start module
+        // start module Dubbo 启动入口
         Future future = deployer.start();
 
         // if the module does not start in background, await finish

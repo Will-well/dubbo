@@ -238,7 +238,11 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
         //export invoker
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
 
-        // url to registry
+        // url to registry 注意：这里会走两遍：
+        // 1.service-discovery-registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=15064&qos.enable=false&registry=zookeeper&release=3.0.7&timestamp=1662996885467
+        //  |-ListenRegistryWrapper
+        // 2.zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=16316&qos.enable=false&release=3.0.7&timestamp=1662996607526
+        //  |-ZookeeperRegistry
         final Registry registry = getRegistry(registryUrl);
         final URL registeredProviderUrl = getUrlToRegistry(providerUrl, registryUrl);
 
@@ -570,6 +574,7 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
             registry.register(directory.getRegisteredConsumerUrl());
         }
         directory.buildRouterChain(urlToRegistry);
+        // 订阅流程
         directory.subscribe(toSubscribeUrl(urlToRegistry));
 
         return (ClusterInvoker<T>) cluster.join(directory, true);

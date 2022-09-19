@@ -177,6 +177,7 @@ public abstract class DynamicDirectory<T> extends AbstractDirectory<T> implement
 
     public void subscribe(URL url) {
         setSubscribeUrl(url);
+        // FailbackRegistry 具有失败重试机制的服务订阅
         registry.subscribe(url, this);
     }
 

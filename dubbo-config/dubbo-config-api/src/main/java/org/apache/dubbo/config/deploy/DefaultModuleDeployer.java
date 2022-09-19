@@ -141,7 +141,7 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
             applicationDeployer.initialize();
             initialize();
 
-            // export services
+            // export services 服务导出
             exportServices();
 
             // prepare application instance
@@ -323,6 +323,7 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
         if (sc.isExported()) {
             return;
         }
+        // 服务的异步注册
         if (exportAsync || sc.shouldExportAsync()) {
             ExecutorService executor = executorRepository.getServiceExportExecutor();
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
@@ -338,6 +339,7 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
 
             asyncExportingFutures.add(future);
         } else {
+            // 服务的同步注册
             if (!sc.isExported()) {
                 sc.export();
                 exportedServices.add(sc);
