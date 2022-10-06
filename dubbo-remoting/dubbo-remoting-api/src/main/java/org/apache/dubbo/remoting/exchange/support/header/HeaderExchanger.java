@@ -16,7 +16,6 @@
  */
 package org.apache.dubbo.remoting.exchange.support.header;
 
-import com.sun.security.ntlm.Server;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.Transporters;

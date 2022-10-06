@@ -16,8 +16,8 @@
  */
 package org.apache.dubbo.metadata;
 
-import org.apache.dubbo.common.bytecode.cache.FileCacheStore;
-import org.apache.dubbo.common.bytecode.cache.FileCacheStoreFactory;
+import org.apache.dubbo.common.cache.FileCacheStore;
+import org.apache.dubbo.common.cache.FileCacheStoreFactory;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.resource.Disposable;
