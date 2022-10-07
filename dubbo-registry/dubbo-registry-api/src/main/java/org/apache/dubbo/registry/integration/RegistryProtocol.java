@@ -208,6 +208,8 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
     }
 
     private void register(Registry registry, URL registeredProviderUrl) {
+        // ServiceDiscoveryRegistry(ListenRegistryWrapper --> FailbackRegistry)
+        // ZookeeperRegistry(ListenRegistryWrapper --> FailbackRegistry)
         registry.register(registeredProviderUrl);
     }
 
@@ -221,8 +223,11 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
 
     @Override
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
+        // service-discovery-registry --> 注册URL:service-discovery-registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=4324&qos.enable=false&registry=zookeeper&release=3.0.7&timestamp=1665040235001// 注册URL:zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=15504&qos.enable=false&release=3.0.7&timestamp=1665069137614
+        // dubbo -->                      注册URL:zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=15580&qos.enable=false&release=3.0.7&timestamp=1665125331594
         URL registryUrl = getRegistryUrl(originInvoker);
         // url to export locally
+        // dubbo://192.168.237.1:20880/org.apache.dubbo.springboot.demo.DemoService?anyhost=true&application=dubbo-springboot-demo-provider&background=false&bind.ip=192.168.237.1&bind.port=20880&deprecated=false&dubbo=2.0.2&dynamic=true&generic=false&interface=org.apache.dubbo.springboot.demo.DemoService&methods=sayHello,sayHelloAsync&pid=15504&qos.enable=false&release=3.0.7&service-name-mapping=true&side=provider&timestamp=1665069137648
         URL providerUrl = getProviderUrl(originInvoker);
 
         // Subscribe the override data
@@ -233,14 +238,15 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
         Map<URL, NotifyListener> overrideListeners = getProviderConfigurationListener(providerUrl).getOverrideListeners();
         overrideListeners.put(registryUrl, overrideSubscribeListener);
+        // 监听器（监听动态配置中⼼此服务的参数数据的变化，⼀旦监听到变化，则重写服务URL，并且在服务导出时先重写⼀次服务URL）
 
         providerUrl = overrideUrlWithConfig(providerUrl, overrideSubscribeListener);
-        //export invoker
+        //export invoker 服务导出：（DubboProtocol的export⽅法去导出服务）1.启动NettyServer 2.设置⼀系列的 RequestHandler
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
 
         // url to registry 注意：这里会走两遍：
         // 1.service-discovery-registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=15064&qos.enable=false&registry=zookeeper&release=3.0.7&timestamp=1662996885467
-        //  |-ListenRegistryWrapper
+        //  |-ListenRegistryWrapper --> ServiceDiscoveryRegistry
         // 2.zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?REGISTRY_CLUSTER=zk-registry&application=dubbo-springboot-demo-provider&dubbo=2.0.2&pid=16316&qos.enable=false&release=3.0.7&timestamp=1662996607526
         //  |-ZookeeperRegistry
         final Registry registry = getRegistry(registryUrl);
@@ -250,10 +256,14 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
         boolean register = providerUrl.getParameter(REGISTER_KEY, true) && registryUrl.getParameter(REGISTER_KEY, true);
         if (register) {
             // 注册中心注册（在注册中心添加节点和watcher）
+            // 这里有两种情况
+            // 1. 接口级注册会将接口级服务提供者数据直接注册到 Zookeeper上面，服务发现（应用级注册）这里仅仅会将注册数据转换为服务元数据等后面来发布元数据
+            // 2. 应用级注册通常添加 metadataInfo 添加基本信息
             register(registry, registeredProviderUrl);
         }
 
         // register stated url on provider model
+        // 服务注册后更新状态
         registerStatedUrl(registryUrl, registeredProviderUrl, register);
 
 
@@ -297,7 +307,7 @@ public class RegistryProtocol implements Protocol, ScopeModelAware {
 
         return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
             Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
-            // 协议导出
+            // 协议导出 scopeModel.getExtensionLoader(org.apache.dubbo.rpc.Protocol.class).getExtension(invokerDelegate)
             return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);
         });
     }

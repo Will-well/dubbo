@@ -648,7 +648,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         if (withMetaData) {
             invoker = new DelegateProviderMetaDataInvoker(invoker, this);
         }
-        // 将URL暴露为 invoker 导出
+        // 将URL暴露为 invoker 导出 (debug技巧:scopeModel.getExtensionLoader(org.apache.dubbo.rpc.Protocol.class).getExtension(invoker.getUrl().getProtocol()))
+        //  service-discovery-registry --> org.apache.dubbo.rpc.protocol.ProtocolSerializationWrapper#export
+        //  registry                   --> org.apache.dubbo.rpc.protocol.ProtocolSerializationWrapper#export（区别是包装的Protocol略有不同）
         Exporter<?> exporter = protocolSPI.export(invoker);
         exporters.add(exporter);
     }
@@ -658,6 +660,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
      * always export injvm
      */
     private void exportLocal(URL url) {
+        // 本地服务导出：修改协议和服务地址
         URL local = URLBuilder.from(url)
                 .setProtocol(LOCAL_PROTOCOL)
                 .setHost(LOCALHOST_VALUE)

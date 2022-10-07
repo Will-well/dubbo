@@ -137,7 +137,7 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
 
             onModuleStarting();
 
-            // initialize
+            // initialize 初始化
             applicationDeployer.initialize();
             initialize();
 
@@ -150,7 +150,7 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
                 applicationDeployer.prepareInternalModule();
             }
 
-            // refer services
+            // refer services 服务引用
             referServices();
 
             // if no async export/refer services, just set started
@@ -310,6 +310,7 @@ public class DefaultModuleDeployer extends AbstractDeployer<ModuleModel> impleme
     }
 
     private void exportServices() {
+        // configManager.getServices() 获取 Service 列表
         for (ServiceConfigBase sc : configManager.getServices()) {
             exportServiceInternal(sc);
         }
