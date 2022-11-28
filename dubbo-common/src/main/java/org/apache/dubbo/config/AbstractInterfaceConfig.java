@@ -222,19 +222,24 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 //        }
 
         // change referenced config's scope model
+        //获取应用程序模型对象
         ApplicationModel applicationModel = ScopeModelUtil.getApplicationModel(scopeModel);
         if (this.configCenter != null && this.configCenter.getScopeModel() != applicationModel) {
             this.configCenter.setScopeModel(applicationModel);
         }
+        //为元数据配置对象设置ApplicationModel类型对象(当前阶段数据配置配置对象为空)
         if (this.metadataReportConfig != null && this.metadataReportConfig.getScopeModel() != applicationModel) {
             this.metadataReportConfig.setScopeModel(applicationModel);
         }
+        //为MonitorConfig服务监控配置对象设置ApplicationModel类型对象(当前阶段数据配置配置对象为空)
         if (this.monitor != null && this.monitor.getScopeModel() != applicationModel) {
             this.monitor.setScopeModel(applicationModel);
         }
+        // [blog:02-启动服务前服务配置serviceConfig类型是如何初始化的]说重复，待确认
         if (this.metadataReportConfig != null && this.metadataReportConfig.getScopeModel() != applicationModel) {
             this.metadataReportConfig.setScopeModel(applicationModel);
         }
+        //如果注册中心配置列表不为空则为每个注册中心配置设置一个ApplicationModel类型对象(当前注册中心对象都为空)
         if (CollectionUtils.isNotEmpty(this.registries)) {
             this.registries.forEach(registryConfig -> {
                 if (registryConfig.getScopeModel() != applicationModel) {
