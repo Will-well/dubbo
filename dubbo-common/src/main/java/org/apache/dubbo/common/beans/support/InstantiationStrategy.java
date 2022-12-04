@@ -43,6 +43,13 @@ public class InstantiationStrategy {
         this.scopeModelAccessor = scopeModelAccessor;
     }
 
+    /**
+     * 优先获取该类的公开构造器（优先是有参数，默认是无参；自能有一个构造器），反射获取该对象
+     * @param type 类
+     * @return 该的实例
+     * @param <T> 返回对象的类型
+     * @throws ReflectiveOperationException 反射异常
+     */
     public <T> T instantiate(Class<T> type) throws ReflectiveOperationException {
 
         // should not use default constructor directly, maybe also has another constructor matched scope model arguments

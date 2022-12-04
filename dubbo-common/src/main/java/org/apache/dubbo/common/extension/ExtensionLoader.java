@@ -152,6 +152,10 @@ public class ExtensionLoader<T> {
      * @since 2.7.7
      */
     private static LoadingStrategy[] loadLoadingStrategies() {
+        // 这里使用Java的SPI机制 org.apache.dubbo.common.extension.LoadingStrategy 具体是实现如下：
+        //   DubboInternalLoadingStrategy
+        //   DubboLoadingStrategy
+        //   ServicesLoadingStrategy
         return stream(load(LoadingStrategy.class).spliterator(), false)
             .sorted()
             .toArray(LoadingStrategy[]::new);
@@ -533,14 +537,17 @@ public class ExtensionLoader<T> {
             throw new IllegalArgumentException("Extension name == null");
         }
         if ("true".equals(name)) {
+            // 获取默认的拓展实现类
             return getDefaultExtension();
         }
         String cacheKey = name;
         if (!wrap) {
             cacheKey += "_origin";
         }
+        // Holder，顾名思义，用于持有目标对象
         final Holder<Object> holder = getOrCreateHolder(cacheKey);
         Object instance = holder.get();
+        // 双重检查
         if (instance == null) {
             synchronized (holder) {
                 instance = holder.get();
@@ -749,20 +756,27 @@ public class ExtensionLoader<T> {
 
     @SuppressWarnings("unchecked")
     private T createExtension(String name, boolean wrap) {
+        // 从配置文件中加载所有的拓展类，可得到“配置项名称”到“配置类”的映射关系表
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null || unacceptableExceptions.contains(name)) {
             throw findException(name);
         }
         try {
+            // 优先从extensionInstances获取
             T instance = (T) extensionInstances.get(clazz);
             if (instance == null) {
+                // 创建类实例
                 extensionInstances.putIfAbsent(clazz, createExtensionInstance(clazz));
                 instance = (T) extensionInstances.get(clazz);
+                // 类似Spring的 postProcessBeforeInitialization 逻辑，初始化前的钩子
                 instance = postProcessBeforeInitialization(instance, name);
+                // 默认给 public 的 set 方法注入属性
                 injectExtension(instance);
+                // 类似Spring的 postProcessAfterInitialization 逻辑，初始化后的钩子
                 instance = postProcessAfterInitialization(instance, name);
             }
 
+            // 自动包装类逻辑
             if (wrap) {
                 List<Class<?>> wrapperClassesList = new ArrayList<>();
                 if (cachedWrapperClasses != null) {
@@ -778,6 +792,7 @@ public class ExtensionLoader<T> {
                             ((ArrayUtils.isEmpty(wrapper.matches()) || ArrayUtils.contains(wrapper.matches(), name)) &&
                                 !ArrayUtils.contains(wrapper.mismatches(), name));
                         if (match) {
+                            // 反射创建包装类的实例
                             instance = injectExtension((T) wrapperClass.getConstructor(type).newInstance(instance));
                             instance = postProcessAfterInitialization(instance, name);
                         }
@@ -786,6 +801,7 @@ public class ExtensionLoader<T> {
             }
 
             // Warning: After an instance of Lifecycle is wrapped by cachedWrapperClasses, it may not still be Lifecycle instance, this application may not invoke the lifecycle.initialize hook.
+            // 初始化钩子
             initExtension(instance);
             return instance;
         } catch (Throwable t) {
@@ -795,6 +811,7 @@ public class ExtensionLoader<T> {
     }
 
     private Object createExtensionInstance(Class<?> type) throws ReflectiveOperationException {
+        // 策略模式类实例化
         return instantiationStrategy.instantiate(type);
     }
 
@@ -830,13 +847,16 @@ public class ExtensionLoader<T> {
         }
 
         try {
+            // 遍历目标类的所有方法
             for (Method method : instance.getClass().getMethods()) {
+                // 检测方法是否以 set 开头，且方法仅有一个参数，且方法访问级别为 public
                 if (!isSetter(method)) {
                     continue;
                 }
                 /**
                  * Check {@link DisableInject} to see if we need auto injection for this property
                  */
+                // 如果有 DisableInject 注解不注入
                 if (method.isAnnotationPresent(DisableInject.class)) {
                     continue;
                 }
@@ -847,8 +867,10 @@ public class ExtensionLoader<T> {
 
                 try {
                     String property = getSetterProperty(method);
+                    // 获取 set 后面名字类是 pt 的实例
                     Object object = injector.getInstance(pt, property);
                     if (object != null) {
+                        // 通过反射调用 setter 方法设置依赖
                         method.invoke(instance, object);
                     }
                 } catch (Exception e) {
@@ -1021,6 +1043,17 @@ public class ExtensionLoader<T> {
         }
     }
 
+    /**
+     * 获取 resourceURL 路径下的文件，通过反射的获取对应的class对象
+     *
+     * @param extensionClasses                 对象集合
+     * @param classLoader                      类加载器
+     * @param resourceURL                      路径
+     * @param overridden                       是否实现Adaptive
+     * @param includedPackages                 包含路径
+     * @param excludedPackages                 排查路径
+     * @param onlyExtensionClassLoaderPackages 排查路径集合
+     */
     private void loadResource(Map<String, Class<?>> extensionClasses, ClassLoader classLoader,
                               java.net.URL resourceURL, boolean overridden, String[] includedPackages, String[] excludedPackages, String[] onlyExtensionClassLoaderPackages) {
         try {

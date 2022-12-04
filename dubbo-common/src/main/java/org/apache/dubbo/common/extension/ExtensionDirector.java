@@ -76,7 +76,7 @@ public class ExtensionDirector implements ExtensionAccessor {
                 ") is not an extension, because it is NOT annotated with @" + SPI.class.getSimpleName() + "!");
         }
 
-        // 1. find in local cache
+        // 1. find in local cache [本地缓存]
         ExtensionLoader<T> loader = (ExtensionLoader<T>) extensionLoadersMap.get(type);
 
         ExtensionScope scope = extensionScopeMap.get(type);

@@ -151,7 +151,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     @Override
     protected void postProcessAfterScopeModelChanged(ScopeModel oldScopeModel, ScopeModel newScopeModel) {
         super.postProcessAfterScopeModelChanged(oldScopeModel, newScopeModel);
+        // 初始化当前协议对象,通过扩展机制获取协议Protocol类型的对象
         protocolSPI = this.getExtensionLoader(Protocol.class).getAdaptiveExtension();
+        // 初始化当前代理工厂对象,通过扩展机制获取ProxyFactory类型的对象
         proxyFactory = this.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
     }
 
