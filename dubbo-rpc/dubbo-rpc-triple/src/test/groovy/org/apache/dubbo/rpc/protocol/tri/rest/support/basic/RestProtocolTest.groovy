@@ -24,6 +24,9 @@ import org.apache.dubbo.rpc.protocol.tri.rest.test.BaseServiceTest
 import org.apache.dubbo.rpc.protocol.tri.test.TestRequest
 import org.apache.dubbo.rpc.protocol.tri.test.TestRunnerBuilder
 
+import io.netty.buffer.AbstractByteBuf
+import io.netty.util.ResourceLeakDetector
+
 class RestProtocolTest extends BaseServiceTest {
 
     @Override
@@ -174,6 +177,30 @@ class RestProtocolTest extends BaseServiceTest {
             '/argTest' | 'Sam is 8 years old'
     }
 
+    @SuppressWarnings('GroovyAccessibility')
+    def "urlEncodeForm body test"() {
+        given:
+            def level = ResourceLeakDetector.level
+            def leaks = AbstractByteBuf.leakDetector.allLeaks
+            ResourceLeakDetector.level = ResourceLeakDetector.Level.PARANOID
+            leaks.clear()
+        and:
+            def request = new TestRequest(
+                path: path,
+                contentType: MediaType.APPLICATION_FROM_URLENCODED,
+                body: body
+            )
+        expect:
+            runner.post(request) == output
+            leaks.empty
+        cleanup:
+            ResourceLeakDetector.level = level
+        where:
+            path       | body             | output
+            '/argTest' | 'name=Sam&age=8' | 'Sam is 8 years old'
+            '/argTest' | '' | 'null is 0 years old'
+    }
+
     def "override mapping test"() {
         expect:
             runner.get(path) == output
@@ -262,6 +289,19 @@ class RestProtocolTest extends BaseServiceTest {
             'POST' | '/mismatchTest'            | 'application/json' | 'text/plain'       | '{"message":"Content type \'application/json\' not supported","status":"415"}'
             'POST' | '/mismatchTest'            | 'text/plain'       | 'application/json' | '{"message":"Could not find acceptable representation","status":"406"}'
             'POST' | '/mismatchTest?name=earth' | 'text/plain'       | 'text/plain'       | '{"message":"Unsatisfied query parameter conditions","status":"400"}'
+    }
+
+    def "consistent with SpringMVC"() {
+        given:
+            def request = new TestRequest(
+                path: path,
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
+            )
+        expect:
+            runner.run(request).contentType == contentType
+        where:
+            path | contentType
+            '/beanArgTest' | 'application/json'
     }
 
 }
